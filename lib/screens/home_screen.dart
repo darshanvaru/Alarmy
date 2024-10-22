@@ -1,43 +1,54 @@
+import 'package:alarmclock/screens/add_alarm.dart';
+import 'package:alarmclock/utils/alarm_tile.dart';
 import 'package:flutter/material.dart';
-import '../widgets/time_display.dart';
-import 'alarm_setting.dart';
-import 'alarm_management.dart';
 
 class HomeScreen extends StatelessWidget {
+  HomeScreen({super.key});
+
+  final List alarms = [
+    ["04:20", "Mon to Fri", "WakeUp!", true],
+    ["06:00", "EveryDay", "", false],
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Alarm Clock'),
+        title: const Text("Alarm"),
       ),
-      body: Center( // Center the content vertically and horizontally
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Wrap content vertically
-          children: [
-            TimeDisplay(),
-            SizedBox(height: 30), // Add spacing between widgets
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AlarmSettingScreen()),
-                );
+      body: ListView.builder(
+        itemCount: alarms.length,
+        itemBuilder: (context, index) {
+          return AlarmTile(
+            time: alarms[index][0],
+            days: alarms[index][1],
+            title: alarms[index][2],
+            isSelected: alarms[index][3],
+          );
+        },
+      ),
+      floatingActionButton: SizedBox(
+        height: 70,
+        width: 70,
+        child: FloatingActionButton(
+          onPressed: () {
+            // Show the full-screen modal bottom sheet
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true, // Allow full-screen height
+              backgroundColor: Colors.transparent, // Transparent background
+              builder: (BuildContext context) {
+                return AddAlarm(); // Your AddAlarm widget
               },
-              child: Text('Set New Alarm'),
+            );
+          },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40)
             ),
-            SizedBox(height: 10), // Spacing between buttons
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AlarmManagementScreen()),
-                );
-              },
-              child: Text('Manage Alarms'),
-            ),
-          ],
+          child: const Icon(Icons.add, size: 40,)
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

@@ -1,6 +1,5 @@
+import 'package:alarmclock/screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
-import 'theme/app_theme.dart';
 
 void main() {
   runApp(MyAlarmApp());
@@ -11,8 +10,14 @@ class MyAlarmApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Alarm App',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+          scaffoldBackgroundColor: Colors.black,
+          colorScheme: const ColorScheme.dark(),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.black,
+          )
+      ),
       home: HomeScreen(),
     );
   }
