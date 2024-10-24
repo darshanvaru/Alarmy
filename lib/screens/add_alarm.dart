@@ -15,6 +15,7 @@ class _AddAlarmState extends State<AddAlarm> {
   bool snoozeEnabled = true;
   String repeatOption = 'Ring once';
   List<bool> selectedDays = List.filled(7, false);
+  List<bool> customSelectedDays = List.filled(7, false);
 
   // Function to handle the time change from Cupertino Picker
   void _onTimeChanged(DateTime newTime) {
@@ -28,9 +29,11 @@ class _AddAlarmState extends State<AddAlarm> {
     setState(() {
       repeatOption = option;
       if (option == 'Workdays') {
-        selectedDays = [false, true, true, true, true, true, false];
+        selectedDays = [false, true, true, true, true, true, false]; // Mon to Fri
       } else if (option == 'Ring once') {
         selectedDays = List.filled(7, false); // No days selected
+      } else if (option == 'Custom') {
+        selectedDays = List.filled(7, false); // Clear previous selections for custom
       }
     });
   }
@@ -44,16 +47,20 @@ class _AddAlarmState extends State<AddAlarm> {
           onTap: () {
             if (repeatOption == 'Custom') {
               setState(() {
-                selectedDays[index] = !selectedDays[index];
+                customSelectedDays[index] = !customSelectedDays[index];
               });
             }
           },
           child: CircleAvatar(
-            backgroundColor: selectedDays[index] ? Colors.blue : Colors.grey[800],
+            backgroundColor: repeatOption == 'Custom'
+                ? (customSelectedDays[index] ? Colors.blue : Colors.grey[800])
+                : (selectedDays[index] ? Colors.blue : Colors.grey[800]),
             child: Text(
               ['S', 'M', 'T', 'W', 'T', 'F', 'S'][index],
               style: TextStyle(
-                color: selectedDays[index] ? Colors.white : Colors.grey[400],
+                color: repeatOption == 'Custom'
+                    ? (customSelectedDays[index] ? Colors.white : Colors.grey[400])
+                    : (selectedDays[index] ? Colors.white : Colors.grey[400]),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -77,13 +84,13 @@ class _AddAlarmState extends State<AddAlarm> {
           ),
         ),
 
-        //Cancel Button
+        // Cancel Button
         leading: TextButton(
           onPressed: () {},
           child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
         ),
 
-        //Done button
+        // Done button
         actions: [
           TextButton(
             onPressed: () {},
@@ -92,7 +99,7 @@ class _AddAlarmState extends State<AddAlarm> {
         ],
       ),
 
-      //body
+      // Body
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -137,7 +144,7 @@ class _AddAlarmState extends State<AddAlarm> {
 
             // Alarm name, Ringtone, Vibrate, Snooze Settings
             TextFormField(
-              decoration: const InputDecoration(  // Placeholder text
+              decoration: const InputDecoration(
                 labelText: 'Alarm name',  // Label that moves up on focus or input
                 hintStyle: TextStyle(color: Colors.grey),
                 labelStyle: TextStyle(color: Colors.grey),
@@ -157,7 +164,6 @@ class _AddAlarmState extends State<AddAlarm> {
 
             const SizedBox(height: 10),
 
-            const SizedBox(height: 10),
             _buildSettingsItem("Ringtone", "Holiday", trailing: Icons.keyboard_arrow_right_rounded),
             const SizedBox(height: 10),
             _buildSettingsItem("Vibrate", "On", trailingSwitch: isSnoozeEnable),
@@ -210,7 +216,7 @@ class _AddAlarmState extends State<AddAlarm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              //title
+              // Title
               Text(
                 title,
                 style: const TextStyle(color: Colors.white, fontSize: 16),
