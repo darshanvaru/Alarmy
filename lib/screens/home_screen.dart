@@ -32,20 +32,36 @@ class HomeScreen extends StatelessWidget {
         width: 70,
         child: FloatingActionButton(
           onPressed: () {
-            // Show the full-screen modal bottom sheet
+            // Open the AddAlarm page as a draggable sheet
             showModalBottomSheet(
               context: context,
               isScrollControlled: true, // Allow full-screen height
               backgroundColor: Colors.transparent, // Transparent background
               builder: (BuildContext context) {
-                return AddAlarm(); // Your AddAlarm widget
+                return DraggableScrollableSheet(
+                  initialChildSize: 0.95, // Adjust initial size
+                  minChildSize: 0.3,     // Minimum height on drag down
+                  maxChildSize: 0.95,     // Full-screen on drag up
+                  builder: (BuildContext context, ScrollController scrollController) {
+                    return Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF1B1B1B),
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                      ),
+                      child: SingleChildScrollView(
+                        controller: scrollController, // Enable scrolling
+                        child: const AddAlarm(), // AddAlarm widget as a sheet
+                      ),
+                    );
+                  },
+                );
               },
             );
           },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(40)
-            ),
-          child: const Icon(Icons.add, size: 40,)
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(40),
+          ),
+          child: const Icon(Icons.add, size: 40),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

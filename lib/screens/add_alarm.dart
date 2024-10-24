@@ -11,11 +11,12 @@ class AddAlarm extends StatefulWidget {
 class _AddAlarmState extends State<AddAlarm> {
   TimeOfDay selectedTime = TimeOfDay.now();
   bool vibrate = true;
-  bool isSnoozeEnable = true;
-  bool snoozeEnabled = true;
+  String ringtone = "Holiday"; // Default ringtone
+  String snoozeOption = "5 minutes, 3 times"; // Default snooze option
   String repeatOption = 'Ring once';
   List<bool> selectedDays = List.filled(7, false);
   List<bool> customSelectedDays = List.filled(7, false);
+  bool isSnoozeExpanded = false; // To track the state of snooze options
 
   // Function to handle the time change from Cupertino Picker
   void _onTimeChanged(DateTime newTime) {
@@ -29,11 +30,9 @@ class _AddAlarmState extends State<AddAlarm> {
     setState(() {
       repeatOption = option;
       if (option == 'Workdays') {
-        selectedDays = [false, true, true, true, true, true, false]; // Mon to Fri
+        selectedDays = [false, true, true, true, true, true, false];
       } else if (option == 'Ring once') {
         selectedDays = List.filled(7, false); // No days selected
-      } else if (option == 'Custom') {
-        selectedDays = List.filled(7, false); // Clear previous selections for custom
       }
     });
   }
@@ -53,14 +52,14 @@ class _AddAlarmState extends State<AddAlarm> {
           },
           child: CircleAvatar(
             backgroundColor: repeatOption == 'Custom'
-                ? (customSelectedDays[index] ? Colors.blue : Colors.grey[800])
-                : (selectedDays[index] ? Colors.blue : Colors.grey[800]),
+                ? customSelectedDays[index] ? Colors.blue : Colors.grey[800]
+                : selectedDays[index] ? Colors.blue : Colors.grey[800],
             child: Text(
               ['S', 'M', 'T', 'W', 'T', 'F', 'S'][index],
               style: TextStyle(
                 color: repeatOption == 'Custom'
-                    ? (customSelectedDays[index] ? Colors.white : Colors.grey[400])
-                    : (selectedDays[index] ? Colors.white : Colors.grey[400]),
+                    ? customSelectedDays[index] ? Colors.white : Colors.grey[400]
+                    : selectedDays[index] ? Colors.white : Colors.grey[400],
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -72,110 +71,161 @@ class _AddAlarmState extends State<AddAlarm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1B1B1B),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Center(
-          child: Text(
-            'New Alarm',
-            style: TextStyle(color: Colors.white),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Make sure the sheet takes up only the space needed
+        children: [
+          SizedBox(
+            height: 150,
+            child: CupertinoDatePicker(
+              initialDateTime: DateTime.now(),
+              mode: CupertinoDatePickerMode.time,
+              use24hFormat: false,
+              onDateTimeChanged: _onTimeChanged,
+            ),
           ),
-        ),
 
-        // Cancel Button
-        leading: TextButton(
-          onPressed: () {},
-          child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
-        ),
+          const SizedBox(height: 20),
 
-        // Done button
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text('Done', style: TextStyle(color: Colors.blue)),
-          )
-        ],
-      ),
-
-      // Body
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // Time Picker
-            SizedBox(
-              height: 150,
-              child: CupertinoDatePicker(
-                initialDateTime: DateTime.now(),
-                mode: CupertinoDatePickerMode.time,
-                use24hFormat: false,
-                onDateTimeChanged: _onTimeChanged,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Ring Once, Workdays, Custom Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildOptionButton("Ring once", repeatOption == "Ring once"),
-                _buildOptionButton("Workdays", repeatOption == "Workdays"),
-                _buildOptionButton("Custom", repeatOption == "Custom"),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Showing Days only if Workdays or Custom is selected
-            if (repeatOption == 'Custom' || repeatOption == 'Workdays') ...[
-              const Text(
-                "Repeat",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              _buildDaySelection(),
-              const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildOptionButton("Ring once", repeatOption == "Ring once"),
+              _buildOptionButton("Workdays", repeatOption == "Workdays"),
+              _buildOptionButton("Custom", repeatOption == "Custom"),
             ],
+          ),
 
-            // Alarm name, Ringtone, Vibrate, Snooze Settings
-            TextFormField(
-              decoration: const InputDecoration(
-                labelText: 'Alarm name',  // Label that moves up on focus or input
-                hintStyle: TextStyle(color: Colors.grey),
-                labelStyle: TextStyle(color: Colors.grey),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),  // Border when enabled
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue),  // Border when focused
-                ),
-              ),
-              style: const TextStyle(color: Colors.white),  // Text color for user input
-              onChanged: (value) {
-                // Handle the alarm name input
-                print('Alarm name: $value');
-              },
+          const SizedBox(height: 20),
+
+          // Repeat Days (Custom or Workdays)
+          if (repeatOption == 'Custom' || repeatOption == 'Workdays') ...[
+            const Text(
+              "Repeat",
+              style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
-
             const SizedBox(height: 10),
-
-            _buildSettingsItem("Ringtone", "Holiday", trailing: Icons.keyboard_arrow_right_rounded),
-            const SizedBox(height: 10),
-            _buildSettingsItem("Vibrate", "On", trailingSwitch: isSnoozeEnable),
-            const SizedBox(height: 10),
-            _buildSettingsItem("Snooze", "5 minutes, 3 times", trailing: Icons.keyboard_arrow_down_rounded),
+            _buildDaySelection(),
+            const SizedBox(height: 20),
           ],
-        ),
+
+          TextFormField(
+            decoration: const InputDecoration(
+              labelText: 'Alarm name',
+              hintStyle: TextStyle(color: Colors.grey),
+              labelStyle: TextStyle(color: Colors.grey),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+              ),
+            ),
+            style: const TextStyle(color: Colors.white),
+            onChanged: (value) {
+              // Handle the alarm name input
+            },
+          ),
+
+          const SizedBox(height: 10),
+
+          // Ringtone selection
+          GestureDetector(
+            onTap: () {},
+            child: _buildSettingsItem(
+              "Ringtone",
+              ringtone,
+              trailing: Icons.keyboard_arrow_right_rounded,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Vibrate option
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                vibrate = !vibrate; // Toggle vibrate option directly
+              });
+            },
+            child: _buildSettingsItem(
+              "Vibrate",
+              vibrate ? "On" : "Off",
+              trailingSwitch: true,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Snooze selection
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isSnoozeExpanded = !isSnoozeExpanded; // Toggle snooze options
+              });
+            },
+            child: _buildSettingsItem(
+              "Snooze",
+              snoozeOption,
+              trailing: Icons.keyboard_arrow_down_rounded,
+            ),
+          ),
+
+          // Expandable Snooze Options with Background
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              color: Colors.grey[800], // Background color for the expanded area
+              borderRadius: BorderRadius.circular(10),
+            ),
+            height: isSnoozeExpanded ? 185 : 0, // Adjust height based on expansion
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  ListTile(
+                    title: Text("5 minutes, 3 times"),
+                    onTap: () {
+                      setState(() {
+                        snoozeOption = "5 minutes, 3 times";
+                      });
+                      setState(() {
+                        isSnoozeExpanded = false; // Collapse after selection
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: Text("10 minutes, 2 times"),
+                    onTap: () {
+                      setState(() {
+                        snoozeOption = "10 minutes, 2 times";
+                      });
+                      setState(() {
+                        isSnoozeExpanded = false; // Collapse after selection
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: Text("15 minutes, 1 time"),
+                    onTap: () {
+                      setState(() {
+                        snoozeOption = "15 minutes, 1 time";
+                      });
+                      setState(() {
+                        isSnoozeExpanded = false; // Collapse after selection
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Build Option Button (Ring once, Workdays, Custom)
   Widget _buildOptionButton(String text, bool isSelected) {
     return Expanded(
       child: GestureDetector(
@@ -201,8 +251,12 @@ class _AddAlarmState extends State<AddAlarm> {
     );
   }
 
-  // Build Settings Item (Ringtone, Vibrate, Snooze)
-  Widget _buildSettingsItem(String title, String subtitle, {IconData? trailing, bool trailingSwitch = false}) {
+  Widget _buildSettingsItem(
+      String title,
+      String subtitle, {
+        IconData? trailing,
+        bool trailingSwitch = false,
+      }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
@@ -215,32 +269,31 @@ class _AddAlarmState extends State<AddAlarm> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              // Title
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 5),
-
-              // Description
               Text(
                 subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(color: Colors.grey[400]),
               ),
             ],
           ),
-          trailingSwitch
-              ? Switch(
-            value: vibrate,
-            onChanged: (value) {
-              setState(() {
-                vibrate = value;
-              });
-            },
-            activeColor: Colors.blue,
-          )
-              : Icon(trailing, color: Colors.grey),
+          if (trailing != null)
+            Icon(
+              trailing,
+              color: Colors.grey[400],
+            ),
+          if (trailingSwitch)
+            Switch(
+              value: vibrate,
+              onChanged: (value) {
+                setState(() {
+                  vibrate = value;
+                });
+              },
+              activeColor: Colors.blue,
+            ),
         ],
       ),
     );
