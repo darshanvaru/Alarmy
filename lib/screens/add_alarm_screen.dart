@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../providers/alarm_provider.dart';
+import '../models/alarm_model.dart';
 
 class AddAlarm extends StatefulWidget {
   const AddAlarm({super.key});
@@ -10,13 +13,14 @@ class AddAlarm extends StatefulWidget {
 
 class _AddAlarmState extends State<AddAlarm> {
   TimeOfDay selectedTime = TimeOfDay.now();
-  bool vibrate = true;
+  bool isVibrate = true;
   String ringtone = "Holiday"; // Default ringtone
   String snoozeOption = "5 minutes, 3 times"; // Default snooze option
   String repeatOption = 'Ring once';
   List<bool> selectedDays = List.filled(7, false);
   List<bool> customSelectedDays = List.filled(7, false);
-  bool isSnoozeExpanded = false; // To track the state of snooze options
+  bool isSnoozeExpanded = false;
+  String alarmTitle = ""; // To track the state of snooze options
 
   // Function to handle the time change from Cupertino Picker
   void _onTimeChanged(DateTime newTime) {
@@ -36,6 +40,8 @@ class _AddAlarmState extends State<AddAlarm> {
       }
     });
   }
+
+
 
   // Function to build the day selection row for Custom and Workdays
   Widget _buildDaySelection() {
@@ -75,8 +81,50 @@ class _AddAlarmState extends State<AddAlarm> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // Make sure the sheet takes up only the space needed
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // AppBar with functional Cancel and Done buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                },
+                child: const Text("Cancel",
+                    style: TextStyle(fontSize: 18, color: Colors.blue)
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Create new alarm and save it
+                  final newAlarm = AlarmModel(
+                    id: (DateTime.now().millisecondsSinceEpoch % 2147483647).toString(),
+                    time: selectedTime,
+                    title: alarmTitle,
+                    selectedDays: repeatOption == 'Custom'
+                        ? customSelectedDays
+                        : selectedDays,
+                    isEnabled: true,
+                    isVibrate: isVibrate,
+                    ringtone: ringtone,
+                    snoozeOption: snoozeOption,
+                  );
+
+                  // Add alarm using provider
+                  Provider.of<AlarmProvider>(context, listen: false)
+                      .addAlarm(newAlarm);
+
+                  Navigator.pop(context); // Close the bottom sheet
+                },
+                child: const Text("Done",
+                    style: TextStyle(fontSize: 18, color: Colors.blue)
+                ),
+              ),
+            ],
+          ),
+
+          // Your existing time picker
           SizedBox(
             height: 150,
             child: CupertinoDatePicker(
@@ -89,6 +137,7 @@ class _AddAlarmState extends State<AddAlarm> {
 
           const SizedBox(height: 20),
 
+          // repeat options
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -100,7 +149,7 @@ class _AddAlarmState extends State<AddAlarm> {
 
           const SizedBox(height: 20),
 
-          // Repeat Days (Custom or Workdays)
+          // repeat days section
           if (repeatOption == 'Custom' || repeatOption == 'Workdays') ...[
             const Text(
               "Repeat",
@@ -111,6 +160,7 @@ class _AddAlarmState extends State<AddAlarm> {
             const SizedBox(height: 20),
           ],
 
+          // Modified alarm title field to save the value
           TextFormField(
             decoration: const InputDecoration(
               labelText: 'Alarm name',
@@ -125,13 +175,15 @@ class _AddAlarmState extends State<AddAlarm> {
             ),
             style: const TextStyle(color: Colors.white),
             onChanged: (value) {
-              // Handle the alarm name input
+              setState(() {
+                alarmTitle = value;
+              });
             },
           ),
 
           const SizedBox(height: 10),
 
-          // Ringtone selection
+          // settings items (ringtone, isVibrate, snooze)
           GestureDetector(
             onTap: () {},
             child: _buildSettingsItem(
@@ -140,28 +192,29 @@ class _AddAlarmState extends State<AddAlarm> {
               trailing: Icons.keyboard_arrow_right_rounded,
             ),
           ),
+
           const SizedBox(height: 10),
 
-          // Vibrate option
           GestureDetector(
             onTap: () {
               setState(() {
-                vibrate = !vibrate; // Toggle vibrate option directly
+                isVibrate = !isVibrate;
               });
             },
             child: _buildSettingsItem(
-              "Vibrate",
-              vibrate ? "On" : "Off",
+              "isVibrate",
+              isVibrate ? "On" : "Off",
               trailingSwitch: true,
             ),
           ),
+
           const SizedBox(height: 10),
 
-          // Snooze selection
+          // Keep your existing snooze section
           GestureDetector(
             onTap: () {
               setState(() {
-                isSnoozeExpanded = !isSnoozeExpanded; // Toggle snooze options
+                isSnoozeExpanded = !isSnoozeExpanded;
               });
             },
             child: _buildSettingsItem(
@@ -171,49 +224,43 @@ class _AddAlarmState extends State<AddAlarm> {
             ),
           ),
 
-          // Expandable Snooze Options with Background
+          // Keep your existing expandable snooze options
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             decoration: BoxDecoration(
-              color: Colors.grey[800], // Background color for the expanded area
+              color: Colors.grey[800],
               borderRadius: BorderRadius.circular(10),
             ),
-            height: isSnoozeExpanded ? 185 : 0, // Adjust height based on expansion
+            height: isSnoozeExpanded ? 185 : 0,
             child: SingleChildScrollView(
               child: Column(
                 children: [
                   const SizedBox(height: 10),
                   ListTile(
-                    title: Text("5 minutes, 3 times"),
+                    title: const Text("5 minutes, 3 times"),
                     onTap: () {
                       setState(() {
                         snoozeOption = "5 minutes, 3 times";
-                      });
-                      setState(() {
-                        isSnoozeExpanded = false; // Collapse after selection
+                        isSnoozeExpanded = false;
                       });
                     },
                   ),
                   ListTile(
-                    title: Text("10 minutes, 2 times"),
+                    title: const Text("10 minutes, 2 times"),
                     onTap: () {
                       setState(() {
                         snoozeOption = "10 minutes, 2 times";
-                      });
-                      setState(() {
-                        isSnoozeExpanded = false; // Collapse after selection
+                        isSnoozeExpanded = false;
                       });
                     },
                   ),
                   ListTile(
-                    title: Text("15 minutes, 1 time"),
+                    title: const Text("15 minutes, 1 time"),
                     onTap: () {
                       setState(() {
                         snoozeOption = "15 minutes, 1 time";
-                      });
-                      setState(() {
-                        isSnoozeExpanded = false; // Collapse after selection
+                        isSnoozeExpanded = false;
                       });
                     },
                   ),
@@ -226,6 +273,7 @@ class _AddAlarmState extends State<AddAlarm> {
     );
   }
 
+  // Keep your existing helper widget methods
   Widget _buildOptionButton(String text, bool isSelected) {
     return Expanded(
       child: GestureDetector(
@@ -269,27 +317,35 @@ class _AddAlarmState extends State<AddAlarm> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              //Main title
               Text(
                 title,
                 style: const TextStyle(color: Colors.white),
               ),
+
+              //subtitle
               Text(
                 subtitle,
                 style: TextStyle(color: Colors.grey[400]),
               ),
             ],
           ),
+
+          //trailing Icon
           if (trailing != null)
             Icon(
               trailing,
               color: Colors.grey[400],
             ),
+
+          //trailing switch
           if (trailingSwitch)
             Switch(
-              value: vibrate,
+              value: isVibrate,
               onChanged: (value) {
                 setState(() {
-                  vibrate = value;
+                  isVibrate = value;
                 });
               },
               activeColor: Colors.blue,
