@@ -22,6 +22,7 @@
     List<bool> selectedDays = List.filled(7, false);
     List<bool> customSelectedDays = List.filled(7, false);
     bool isSnoozeExpanded = false;
+    bool isRingtoneExpanded = false;
     String alarmTitle = "";
 
     @override
@@ -248,11 +249,85 @@
 
             // settings items (ringtone, isVibrate, snooze)
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                setState(() {
+                  isRingtoneExpanded = !isRingtoneExpanded;
+                });},
               child: _buildSettingsItem(
                 "Ringtone",
                 ringtone,
-                trailing: Icons.keyboard_arrow_right_rounded,
+                trailing: isRingtoneExpanded? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              ),
+            ),
+
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              height: isRingtoneExpanded ? 185 : 0,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    ListTile(
+                      title: const Text("Holiday"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Holiday";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: const Text("Morning Sunshine"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Morning Sunshine";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: const Text("Peaceful Waves"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Peaceful Waves";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: const Text("Gentle Chimes"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Gentle Chimes";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: const Text("Soft Piano"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Soft Piano";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: const Text("Fun Tune"),
+                      onTap: () {
+                        setState(() {
+                          ringtone = "Fun Tune";
+                          isRingtoneExpanded = false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -283,7 +358,7 @@
               child: _buildSettingsItem(
                 "Snooze",
                 snoozeOption,
-                trailing: Icons.keyboard_arrow_down_rounded,
+                trailing: isSnoozeExpanded? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down_rounded,
               ),
             ),
 
@@ -331,6 +406,7 @@
                 ),
               ),
             ),
+
           ],
         ),
       );

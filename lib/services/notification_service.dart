@@ -73,13 +73,13 @@ class NotificationService {
       }
     }
 
-    var androidDetails = const AndroidNotificationDetails(
+    var androidDetails = AndroidNotificationDetails(
       'alarm_channel',
       'Alarms',
       channelDescription: 'Alarm notifications',
       importance: Importance.max,
       priority: Priority.high,
-      sound: RawResourceAndroidNotificationSound('holiday'),
+      sound: RawResourceAndroidNotificationSound(alarm.ringtone), // Use the custom ringtone here
       fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
       actions: [
