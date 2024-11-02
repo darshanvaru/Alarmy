@@ -7,34 +7,32 @@ plugins {
 
 android {
     namespace = "com.example.alarmclock"
-    compileSdk = 31//flutter.compileSdkVersion
+    compileSdk = 34 // Set to 34 for Android 14 compatibility
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Enable Java 8 features and desugaring
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.alarmclock"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21//flutter.minSdkVersion
-        //noinspection ExpiredTargetSdkVersion
-        targetSdk = 31//flutter.targetSdkVersion
+        minSdk = flutter.minSdkVersion
+        targetSdk = 34 // Target Android 14 (API level 34)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true // Enable multiDex support
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Use debug signing config for now; update with release signing config later
             signingConfig = signingConfigs.debug
         }
     }
@@ -42,4 +40,13 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Core desugaring library for backward compatibility
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
+
+    // Add WindowManager library to avoid crashes on Android 12L+
+    implementation 'androidx.window:window:1.0.0'
+    implementation 'androidx.window:window-java:1.0.0'
 }
