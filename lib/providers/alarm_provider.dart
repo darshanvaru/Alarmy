@@ -1,4 +1,3 @@
-// import 'package:alarmclock/screens/notification_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/alarm_model.dart';
 import '../services/notification_service.dart';
@@ -14,16 +13,12 @@ class AlarmProvider extends ChangeNotifier {
     if (alarm.isEnabled) {
       debugPrint('Scheduling alarm notification');
       await _notificationService.scheduleAlarm(alarm);
-      await _notificationService.checkPendingNotifications();
     }
     notifyListeners();
   }
 
   Future<void> toggleAlarm(String alarmId, bool isEnabled) async {
     debugPrint('Toggling alarm: $alarmId to $isEnabled');
-    print("------------------------------------------------");
-    print(_alarms);
-    print("------------------------------------------------");
     final alarmIndex = _alarms.indexWhere((alarm) => alarm.id == alarmId);
     if (alarmIndex != -1) {
       final alarm = _alarms[alarmIndex];
@@ -45,10 +40,27 @@ class AlarmProvider extends ChangeNotifier {
         await _notificationService.scheduleAlarm(updatedAlarm);
       } else {
         debugPrint('Cancelling alarm notification');
-        await _notificationService.cancelAlarm(alarmId);
+        await _notificationService.cancelAlarm(alarm.id);
       }
 
-      await _notificationService.checkPendingNotifications();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateAlarm(AlarmModel updatedAlarm) async {
+    debugPrint('Updating alarm: ${updatedAlarm.id}');
+    final alarmIndex = _alarms.indexWhere((alarm) => alarm.id == updatedAlarm.id);
+    if (alarmIndex != -1) {
+      _alarms[alarmIndex] = updatedAlarm;
+
+      if (updatedAlarm.isEnabled) {
+        debugPrint('Rescheduling alarm notification');
+        await _notificationService.scheduleAlarm(updatedAlarm);
+      } else {
+        debugPrint('Cancelling alarm notification');
+        await _notificationService.cancelAlarm(updatedAlarm.id);
+      }
+
       notifyListeners();
     }
   }
