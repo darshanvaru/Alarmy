@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AlarmModel {
   final String id;
   final TimeOfDay time;
-  final String title;
+  late final String title;
   final List<bool> selectedDays;
   final bool isEnabled;
   final bool isVibrate;
