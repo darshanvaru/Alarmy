@@ -1,8 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
-import '../models/alarm_model.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart'; // Import permission_handler
+import '../models/alarm_model.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._();
@@ -12,7 +13,9 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    // Initialize timezone data
     tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
     // Initialize settings for Android
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -20,11 +23,34 @@ class NotificationService {
     // Create InitializationSettings instance
     const initializationSettings = InitializationSettings(
       android: androidSettings,
-      iOS: null, // Set to null since you are not targeting iOS
+      iOS: null,
     );
 
     // Initialize the notifications plugin
     await _notifications.initialize(initializationSettings);
+
+    // Check notification permissions
+    await _checkNotificationPermissions();
+  }
+
+  Future<void> _checkNotificationPermissions() async {
+    // Check and request notification permission
+    var status = await Permission.notification.status;
+
+    if (!status.isGranted) {
+      // Request permission
+      await Permission.notification.request();
+      status = await Permission.notification.status; // Get the updated status
+
+      if (status.isGranted) {
+        debugPrint('Notification permission granted.');
+      } else {
+        debugPrint('Notification permission denied.');
+        // Optionally, show a dialog or alert to inform the user
+      }
+    } else {
+      debugPrint('Notification permission already granted.');
+    }
   }
 
   Future<void> scheduleAlarm(AlarmModel alarm) async {
@@ -37,19 +63,17 @@ class NotificationService {
       alarm.time.minute,
     );
 
-    // If the time has already passed today, schedule for tomorrow
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    // Handle repeating days
     if (alarm.selectedDays.contains(true)) {
       while (!alarm.selectedDays[scheduledDate.weekday % 7]) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
     }
 
-    const androidDetails = AndroidNotificationDetails(
+    var androidDetails = const AndroidNotificationDetails(
       'alarm_channel',
       'Alarms',
       channelDescription: 'Alarm notifications',
@@ -64,7 +88,6 @@ class NotificationService {
       ],
     );
 
-    // Since you're focusing on Android, you can omit iOS details
     final details = NotificationDetails(android: androidDetails);
 
     debugPrint('Scheduling notification for ${tz.TZDateTime.from(scheduledDate, tz.local)}');
@@ -73,7 +96,7 @@ class NotificationService {
       await _notifications.zonedSchedule(
         int.parse(alarm.id),
         'Alarm',
-        alarm.title.isNotEmpty ? alarm.title : 'Time to wake up!',
+        alarm.title.isNotEmpty ? alarm.title : '',
         tz.TZDateTime.from(scheduledDate, tz.local),
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -92,6 +115,11 @@ class NotificationService {
   Future<void> cancelAlarm(String alarmId) async {
     debugPrint('Cancelling alarm: $alarmId');
     await _notifications.cancel(int.parse(alarmId));
+  }
+
+  Future<void> cancelAllNotifications() async {
+    debugPrint('Cancelling all notifications');
+    await _notifications.cancelAll();
   }
 
   Future<void> checkPendingNotifications() async {
