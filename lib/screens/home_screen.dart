@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text("Alarm"),
+        title: const Text("Alarmy"),
       ),
       body: Column(
         children: [

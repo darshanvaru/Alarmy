@@ -5,8 +5,6 @@ import 'package:alarmclock/providers/alarm_provider.dart';
 import 'package:alarmclock/services/notification_service.dart';
 import 'package:alarmclock/screens/home_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'models/alarm_model.dart';
-import 'screens/notification_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
