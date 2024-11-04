@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:alarmclock/screens/add_alarm_screen.dart';
 import 'package:alarmclock/utils/alarm_tile.dart';
@@ -20,7 +19,7 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           // Analog Clock covering upper 40% of the screen
-          Expanded(
+          const Expanded(
             flex: 3,
             child: Center(
               child: AnalogClock(),
@@ -131,39 +130,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // to get selected days of week
   String _getDaysString(List<bool> days) {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    final selectedDays = <String>[];
+    final selectedDays = [
+      for (var i = 0; i < days.length; i++) if (days[i]) dayNames[i]
+    ];
 
-    for (var i = 0; i < days.length; i++) {
-      if (days[i]) {
-        selectedDays.add(dayNames[i]);
-      }
-    }
-
-    if (selectedDays.isEmpty) {
-      return 'Once';
-    } else if (selectedDays.length == 7) {
-      return 'Every day';
-    } else if (selectedDays.length == 5 &&
-        Set.from(selectedDays).containsAll({'Mon', 'Tue', 'Wed', 'Thu', 'Fri'})) {
+    if (selectedDays.isEmpty) return 'Once';
+    if (selectedDays.length == 7) return 'Every day';
+    if (selectedDays.length == 5 && selectedDays.every((day) =>
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].contains(day))) {
       return 'Weekdays';
-    } else {
-      return selectedDays.join(', ');
     }
-  }
-
-  Future<void> _cancelAllNotifications() async {
-    final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
-    await notifications.cancelAll();
-    debugPrint("Cancelled all notifications");
-    final pending = await notifications.pendingNotificationRequests();
-    debugPrint('Pending notifications: ${pending.length}');
-  }
-
-  Future<void> _showAllNotifications() async {
-    final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
-    final pending = await notifications.pendingNotificationRequests();
-    debugPrint('Pending notifications: ${pending.length}');
+    return selectedDays.join(', ');
   }
 }
