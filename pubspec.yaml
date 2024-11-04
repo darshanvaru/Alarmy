@@ -29,7 +29,6 @@ flutter:
   uses-material-design: true
 
 assets:
-  - assets/audio/holiday.mp3
   - assets/audio/peacefulwaves.mp3
   - assets/audio/gentelchimes.mp3
   - assets/audio/softpiano.mp3
