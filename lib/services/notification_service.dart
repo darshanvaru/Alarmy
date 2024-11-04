@@ -28,32 +28,19 @@ class NotificationService {
 
     // Initialize the notifications plugin
     await _notifications.initialize(initializationSettings);
-
-    // Check notification permissions
-    await _checkNotificationPermissions();
-  }
-
-  Future<void> _checkNotificationPermissions() async {
-    // Check and request notification permission
-    var status = await Permission.notification.status;
-
-    if (!status.isGranted) {
-      // Request permission
-      await Permission.notification.request();
-      status = await Permission.notification.status; // Get the updated status
-
-      if (status.isGranted) {
-        debugPrint('Notification permission granted.');
-      } else {
-        debugPrint('Notification permission denied.');
-        // Optionally, show a dialog or alert to inform the user
-      }
-    } else {
-      debugPrint('Notification permission already granted.');
-    }
   }
 
   Future<void> scheduleAlarm(AlarmModel alarm) async {
+    // Check if notification permission is granted
+    final notificationStatus = await Permission.notification.status;
+    if (!notificationStatus.isGranted) {
+      // If not granted, request permission
+      await Permission.notification.request();
+      if (!await Permission.notification.isGranted) {
+        debugPrint('Notification permission is still not granted.');
+        return; // Exit if permission is not granted
+      }
+    }
     final now = DateTime.now();
     DateTime scheduledDate = DateTime(
       now.year,
@@ -79,12 +66,12 @@ class NotificationService {
       channelDescription: 'Alarm notifications',
       importance: Importance.max,
       priority: Priority.high,
-      sound: RawResourceAndroidNotificationSound(alarm.ringtone), // Use the custom ringtone here
+      sound: RawResourceAndroidNotificationSound(alarm.ringtone),
       fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
       actions: [
-        AndroidNotificationAction('snooze', 'Snooze'),
-        AndroidNotificationAction('stop', 'Stop'),
+        const AndroidNotificationAction('snooze', 'Snooze'),
+        const AndroidNotificationAction('stop', 'Stop'),
       ],
     );
 
