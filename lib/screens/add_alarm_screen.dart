@@ -16,7 +16,7 @@
   class _AddAlarmState extends State<AddAlarm> {
     TimeOfDay selectedTime = TimeOfDay.now();
     bool isVibrate = true;
-    String ringtone = "holiday"; // Default ringtone
+    String ringtone = "morningsunshine"; // Default ringtone
     String snoozeOption = "5 minutes, 3 times"; // Default snooze option
     String repeatOption = 'Ring once';
     List<bool> selectedDays = List.filled(7, false);
@@ -47,18 +47,8 @@
           repeatOption = "Custom";
           customSelectedDays = selectedDays;// Custom selection
         }
-
-        print("------------------------------------------");
-        print(selectedTime);
-        print(alarmTitle);
-        print(isVibrate);
-        print(ringtone);
-        print(snoozeOption);
-        print(selectedDays);
-        print("------------------------------------------");
       }
     }
-
 
     // Function to handle the time change from Cupertino Picker
     void _onTimeChanged(DateTime newTime) {
@@ -111,8 +101,109 @@
       );
     }
 
+    // helper widget methods
+    Widget _buildOptionButton(String text, bool isSelected) {
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => _handleRepeatOption(text),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blue : Colors.grey[800],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey[400],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget _buildSettingsItem(
+        String title,
+        String subtitle, {
+          IconData? trailing,
+          bool trailingSwitch = false,
+        })
+    {
+      String displaySubtitle = "";
+
+      // Determine the appropriate subtitle based on the title
+      if (title == "Ringtone") {
+        if (subtitle == 'morningsunshine') {
+          displaySubtitle = "Morning Sunshine";
+        } else if (subtitle == 'holiday') {
+          displaySubtitle = "Holiday";
+        } else if (subtitle == 'peacefullwaves') {
+          displaySubtitle = "Peaceful Waves";
+        } else if (subtitle == 'gentelchimes') {
+          displaySubtitle = "Gentle Chimes";
+        } else {
+          displaySubtitle = "Soft Piano";
+        }
+      } else if (title == "Snooze") {
+        displaySubtitle = subtitle; // Snooze options can be directly set as subtitle
+      }
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Main title
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                // Subtitle, only shown if it's not for the vibrate option
+                if (title != "isVibrate")
+                  Text(
+                    displaySubtitle,
+                    style: TextStyle(color: Colors.grey[400]),
+                  ),
+              ],
+            ),
+
+            // Trailing icon
+            if (trailing != null)
+              Icon(
+                trailing,
+                color: Colors.grey[400],
+              ),
+
+            // Trailing switch for vibrate
+            if (trailingSwitch)
+              Switch(
+                value: isVibrate,
+                onChanged: (value) {
+                  setState(() {
+                    isVibrate = value;
+                  });
+                },
+                activeColor: Colors.blue,
+              ),
+          ],
+        ),
+      );
+    }
+
     @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -125,7 +216,7 @@
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
 
-                //cancel
+                //cancel button
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -135,7 +226,7 @@
                   ),
                 ),
 
-                //done
+                //done button
                 TextButton(
                   onPressed: () {
                     // Check if an existing alarm is being edited
@@ -154,9 +245,8 @@
                         snoozeOption: snoozeOption,
                       );
 
-                      // Update the alarm using provider
                       Provider.of<AlarmProvider>(context, listen: false)
-                          .updateAlarm(updatedAlarm); // Make sure you have this method in your AlarmProvider
+                          .updateAlarm(updatedAlarm);
                     } else {
                       // Create new alarm and save it
                       final newAlarm = AlarmModel(
@@ -172,15 +262,52 @@
                         snoozeOption: snoozeOption,
                       );
 
-                      // Add alarm using provider
                       Provider.of<AlarmProvider>(context, listen: false)
                           .addAlarm(newAlarm);
                     }
 
+                    // Calculate time difference for Snackbar message
+                    final now = TimeOfDay.now();
+                    int differenceInMinutes = (selectedTime.hour - now.hour) * 60 +
+                        (selectedTime.minute - now.minute);
+
+                    // Adjust for alarms set for the next day
+                    if (differenceInMinutes <= 0) {
+                      differenceInMinutes += 24 * 60;
+                    }
+
+                    final timeLeft = differenceInMinutes > 0
+                        ? "$differenceInMinutes minutes"
+                        : "less than a minute";
+
+                    // Show Customized Snackbar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Alarm is set and will ring in $timeLeft.",
+                          style: const TextStyle(
+                            color: Colors.white, // Text color
+                          ),
+                        ),
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.grey[850], // Match with dark theme
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20), // Rounded corners
+                        ),
+                        margin: const EdgeInsets.only(
+                          bottom: 60.0, // Gap from the bottom
+                          left: 20.0,
+                          right: 20.0,
+                        ),
+                      ),
+                    );
+
                     Navigator.pop(context); // Close the bottom sheet
                   },
-                  child: const Text("Done",
-                      style: TextStyle(fontSize: 18, color: Colors.blue)
+                  child: const Text(
+                    "Done",
+                    style: TextStyle(fontSize: 18, color: Colors.blue),
                   ),
                 ),
               ],
@@ -210,10 +337,8 @@
                 _buildOptionButton("Custom", repeatOption == "Custom"),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // repeat days section
+            // week days section
             if (repeatOption == 'Custom' || repeatOption == 'Workdays') ...[
               const Text(
                 "Repeat",
@@ -224,7 +349,7 @@
               const SizedBox(height: 20),
             ],
 
-            // Modified alarm title field to save the value
+            // Alarm title
             TextFormField(
               decoration: const InputDecoration(
                 labelText: 'Alarm name',
@@ -244,10 +369,9 @@
                 });
               },
             ),
-
             const SizedBox(height: 10),
 
-            // settings items (ringtone, isVibrate, snooze)
+            // Ringtone
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -259,7 +383,7 @@
                 trailing: isRingtoneExpanded? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
               ),
             ),
-
+            //expandable ringtone selector
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -276,7 +400,7 @@
                       title: const Text("Holiday"),
                       onTap: () {
                         setState(() {
-                          ringtone = "Holiday";
+                          ringtone = "holiday";
                           isRingtoneExpanded = false;
                         });
                       },
@@ -285,7 +409,7 @@
                       title: const Text("Morning Sunshine"),
                       onTap: () {
                         setState(() {
-                          ringtone = "Morning Sunshine";
+                          ringtone = "morningsunshine";
                           isRingtoneExpanded = false;
                         });
                       },
@@ -294,7 +418,7 @@
                       title: const Text("Peaceful Waves"),
                       onTap: () {
                         setState(() {
-                          ringtone = "Peaceful Waves";
+                          ringtone = "peacefulwaves";
                           isRingtoneExpanded = false;
                         });
                       },
@@ -303,7 +427,7 @@
                       title: const Text("Gentle Chimes"),
                       onTap: () {
                         setState(() {
-                          ringtone = "Gentle Chimes";
+                          ringtone = "gentlechimes";
                           isRingtoneExpanded = false;
                         });
                       },
@@ -312,16 +436,7 @@
                       title: const Text("Soft Piano"),
                       onTap: () {
                         setState(() {
-                          ringtone = "Soft Piano";
-                          isRingtoneExpanded = false;
-                        });
-                      },
-                    ),
-                    ListTile(
-                      title: const Text("Fun Tune"),
-                      onTap: () {
-                        setState(() {
-                          ringtone = "Fun Tune";
+                          ringtone = "softpiano";
                           isRingtoneExpanded = false;
                         });
                       },
@@ -330,9 +445,9 @@
                 ),
               ),
             ),
-
             const SizedBox(height: 10),
 
+            //Vibrate option
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -340,15 +455,14 @@
                 });
               },
               child: _buildSettingsItem(
-                "isVibrate",
+                "Vibrate",
                 isVibrate ? "On" : "Off",
                 trailingSwitch: true,
               ),
             ),
-
             const SizedBox(height: 10),
 
-            // Keep your existing snooze section
+            // Snooze section
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -361,8 +475,7 @@
                 trailing: isSnoozeExpanded? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down_rounded,
               ),
             ),
-
-            // Keep your existing expandable snooze options
+            // expandable snooze options
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -411,86 +524,4 @@
         ),
       );
     }
-
-    // Keep your existing helper widget methods
-    Widget _buildOptionButton(String text, bool isSelected) {
-      return Expanded(
-        child: GestureDetector(
-          onTap: () => _handleRepeatOption(text),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 5),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.blue : Colors.grey[800],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[400],
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    Widget _buildSettingsItem(
-        String title,
-        String subtitle, {
-          IconData? trailing,
-          bool trailingSwitch = false,
-        }) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                //Main title
-                Text(
-                  title,
-                  style: const TextStyle(color: Colors.white),
-                ),
-
-                //subtitle
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.grey[400]),
-                ),
-              ],
-            ),
-
-            //trailing Icon
-            if (trailing != null)
-              Icon(
-                trailing,
-                color: Colors.grey[400],
-              ),
-
-            //trailing switch
-            if (trailingSwitch)
-              Switch(
-                value: isVibrate,
-                onChanged: (value) {
-                  setState(() {
-                    isVibrate = value;
-                  });
-                },
-                activeColor: Colors.blue,
-              ),
-          ],
-        ),
-      );
-    }
-  }
+}
