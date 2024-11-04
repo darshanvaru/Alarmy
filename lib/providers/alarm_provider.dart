@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/alarm_model.dart';
 import '../services/notification_service.dart';
 
@@ -8,12 +10,33 @@ class AlarmProvider extends ChangeNotifier {
 
   List<AlarmModel> get alarms => _alarms;
 
+  // Load alarms from local storage
+  Future<void> loadAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? alarmsString = prefs.getString('alarms');
+
+    if (alarmsString != null) {
+      final List<dynamic> alarmsJson = json.decode(alarmsString);
+      _alarms.clear();
+      _alarms.addAll(alarmsJson.map((json) => AlarmModel.fromMap(json)).toList());
+      notifyListeners();
+    }
+  }
+
+  // Save alarms to local storage
+  Future<void> saveAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<Map<String, dynamic>> alarmsMap = _alarms.map((alarm) => alarm.toMap()).toList();
+    await prefs.setString('alarms', json.encode(alarmsMap));
+  }
+
   Future<void> addAlarm(AlarmModel alarm) async {
     _alarms.add(alarm);
     if (alarm.isEnabled) {
       debugPrint('Scheduling alarm notification');
       await _notificationService.scheduleAlarm(alarm);
     }
+    await saveAlarms(); // Save alarms after adding
     notifyListeners();
   }
 
@@ -43,6 +66,7 @@ class AlarmProvider extends ChangeNotifier {
         await _notificationService.cancelAlarm(alarm.id);
       }
 
+      await saveAlarms(); // Save alarms after toggling
       notifyListeners();
     }
   }
@@ -61,6 +85,7 @@ class AlarmProvider extends ChangeNotifier {
         await _notificationService.cancelAlarm(updatedAlarm.id);
       }
 
+      await saveAlarms(); // Save alarms after updating
       notifyListeners();
     }
   }
@@ -69,6 +94,7 @@ class AlarmProvider extends ChangeNotifier {
     debugPrint('Deleting alarm: $alarmId');
     _alarms.removeWhere((alarm) => alarm.id == alarmId);
     await _notificationService.cancelAlarm(alarmId);
+    await saveAlarms(); // Save alarms after deleting
     notifyListeners();
   }
 }

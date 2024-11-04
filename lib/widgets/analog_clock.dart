@@ -1,21 +1,23 @@
 // lib/widgets/analog_clock.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:math' as Math;
+import 'dart:math' as math;
 
 class AnalogClock extends StatefulWidget {
+  const AnalogClock({super.key});
+
   @override
-  _AnalogClockState createState() => _AnalogClockState();
+  AnalogClockState createState() => AnalogClockState();
 }
 
-class _AnalogClockState extends State<AnalogClock> {
+class AnalogClockState extends State<AnalogClock> {
   late Timer _timer;
   DateTime _currentTime = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
       });
@@ -49,7 +51,7 @@ class ClockPainter extends CustomPainter {
     final radius = size.width / 2;
 
     // Background Circle
-    final paintCircle = Paint()..color = Color(0xFF1B1B1B);
+    final paintCircle = Paint()..color = const Color(0xFF1B1B1B);
     canvas.drawCircle(center, radius, paintCircle);
 
     // Clock Numbers (12, 3, 6, 9)
@@ -104,8 +106,8 @@ class ClockPainter extends CustomPainter {
     canvas.drawLine(
       center,
       Offset(
-        center.dx + hourHandLength * Math.cos(hourAngle - Math.pi / 2),
-        center.dy + hourHandLength * Math.sin(hourAngle - Math.pi / 2),
+        center.dx + hourHandLength * math.cos(hourAngle - math.pi / 2),
+        center.dy + hourHandLength * math.sin(hourAngle - math.pi / 2),
       ),
       paintHour,
     );
@@ -113,8 +115,8 @@ class ClockPainter extends CustomPainter {
     canvas.drawLine(
       center,
       Offset(
-        center.dx + minuteHandLength * Math.cos(minuteAngle - Math.pi / 2),
-        center.dy + minuteHandLength * Math.sin(minuteAngle - Math.pi / 2),
+        center.dx + minuteHandLength * math.cos(minuteAngle - math.pi / 2),
+        center.dy + minuteHandLength * math.sin(minuteAngle - math.pi / 2),
       ),
       paintMinute,
     );
@@ -122,8 +124,8 @@ class ClockPainter extends CustomPainter {
     canvas.drawLine(
       center,
       Offset(
-        center.dx + secondHandLength * Math.cos(secondAngle - Math.pi / 2),
-        center.dy + secondHandLength * Math.sin(secondAngle - Math.pi / 2),
+        center.dx + secondHandLength * math.cos(secondAngle - math.pi / 2),
+        center.dy + secondHandLength * math.sin(secondAngle - math.pi / 2),
       ),
       paintSecond,
     );

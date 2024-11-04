@@ -33,7 +33,7 @@ class AlarmTile extends StatelessWidget {
     return Dismissible(
       key: Key(time),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => Future.delayed(Duration(milliseconds: 100), onDelete),
+      onDismissed: (_) => Future.delayed(const Duration(milliseconds: 100), onDelete),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20.0),
