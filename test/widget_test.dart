@@ -15,6 +15,7 @@ void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     final notificationService = NotificationService();
 
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(MyAlarmApp(notificationService: notificationService,));
 
