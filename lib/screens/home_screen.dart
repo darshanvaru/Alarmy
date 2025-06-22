@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                 if (alarmProvider.alarms.isEmpty) {
                   return const Center(
                     child: Text(
-                      'No alarms set',
+                      'No alarms set, click "+" to add one',
                       style: TextStyle(color: Colors.grey),
                     ),
                   );

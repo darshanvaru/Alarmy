@@ -26,7 +26,6 @@
     String alarmTitle = "";
 
     @override
-    @override
     void initState() {
       super.initState();
       if (widget.alarm != null) {

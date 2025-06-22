@@ -14,7 +14,8 @@ void main() async {
 
   // Initialize notification service
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  await notificationService.
+  initialize();
 
   runApp(MyAlarmApp(notificationService: notificationService));
 }
@@ -87,7 +88,9 @@ class PermissionHandlerScreenState extends State<PermissionHandlerScreen> {
     if (!_hasAlarmPermission || !_hasNotificationPermission) {
       _requestPermissions();
     } else {
-      _navigateToHomeScreen();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     }
   }
 
@@ -101,7 +104,9 @@ class PermissionHandlerScreenState extends State<PermissionHandlerScreen> {
     });
 
     if (_hasAlarmPermission && _hasNotificationPermission) {
-      _navigateToHomeScreen();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       _showPermissionSnackbar();
     }
@@ -120,12 +125,6 @@ class PermissionHandlerScreenState extends State<PermissionHandlerScreen> {
           },
         ),
       ),
-    );
-  }
-
-  void _navigateToHomeScreen() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 
